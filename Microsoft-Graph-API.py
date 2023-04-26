@@ -115,15 +115,56 @@ def send_chat_message(bearer_token ,chat_id, message):
 	messsage_data = {"body": {"contentType": "html", "content": message}}
 	resp = requests.post(send_message_url, headers=get_headers(
 		bearer_token), json=messsage_data)
-	json_resp = resp.json
+	json_resp = resp.json()
 	if resp.status_code not in [200, 201]:
 		return False
 	return True
 
-def auto_send_messages():
-	# Init start time
-	startup_timestamp = time.time()
+def main(startup_timestamp):
 
+        # First Check if the token is valid
+	user_bearer = check_token()
+
+	# Get SignedIn user data
+	#users_data = get_ms_teams_users(user_bearer)
+
+ 	# Get SingnedIn user chat info
+	#chat_id =  get_chat_id(user_bearer)
+
+	# Get chatMessage in a channel or chat
+	print("[+] Start listening last preview message")
+	while True:
+		user_bearer = check_token()
+		chat_message = get_chat_message(user_bearer)
+
+	# List chats along with the preview of the last message sent in the chat
+		for item in chat_message:
+                	topic = item["topic"]
+                	chatType = item["chatType"]
+                	content = item["lastMessagePreview"]["body"]["content"]
+                	user = item["lastMessagePreview"]["from"]["user"]
+                	createdDateTime = item["lastMessagePreview"]["createdDateTime"]
+                	chat_id = item["id"]
+                	if user is not None and chatType == "oneOnOne":
+                        	dt = datetime.fromisoformat(createdDateTime)
+                        	timestamp = dt.timestamp()
+                        	if timestamp > startup_timestamp:
+                        		displayName = item["lastMessagePreview"]["from"]["user"]["displayName"]
+                        		if displayName != "Ziang Yu":
+                        			print("[+] Chat id: " ,chat_id)
+                        			print("[+] Displayname: " ,displayName)
+                        			print("[+] chatType: " ,chatType)
+                        			# Recevie new message
+                        			message = get_content(content)
+                        			print("[+] Content: ", message)
+                        			print("[+] createdDateTime: " ,createdDateTime)
+						# Auto Send message
+                        			send_chat_message(user_bearer ,chat_id ,message)
+                        			startup_timestamp = timestamp
+                        			break
+	time.sleep(5)
+
+def auto_send_messages(startup_timestamp):
 	# First Check if the token is valid
 	user_bearer = check_token()
 
@@ -218,11 +259,7 @@ def display_members_name(bearer_token, chat_id):
 # Search users by Email addrss
 def search_user_id(bearer_token):
 	while True:
-		mail = input("[+] Input search email or user name: ")
-		if " " in mail:
-			mail = mail.replace(" ", ".").lower() + "@mdpi.com"
-		if "@mdpi.com" not in mail:
-			mail = mail.lower() + "@mdpi.com"
+		mail = input("[+] Input search email address: ")
 		url = f"https://graph.microsoft.com/v1.0/users?$filter=userPrincipalName eq '{mail}'"
 		resp = requests.get(url, headers=get_headers(bearer_token))
 		json_resp = error_info(resp)
@@ -233,20 +270,8 @@ def search_user_id(bearer_token):
 			print("[+] User ID: ", user_id)
 			break
 		else:
-			print("[+] User not found!")
+			print("[+] User is not find!")
 	return user_id
-
-# Get user profiles by search user email and name
-def user_profiles():
-	bearer_token = check_token()
-	user_id = search_user_id(bearer_token)
-	url = f"https://graph.microsoft.com/v1.0/users/{user_id}"
-	resp = requests.get(url, headers=get_headers(bearer_token))
-	json_resp = error_info(resp)
-	print("[+] Display Name: ", json_resp["displayName"])
-	print("[+] Job Title: ", json_resp["jobTitle"])
-	print("[+] Email Address: ", json_resp["mail"])
-	print("[+] Office Location: ", json_resp["officeLocation"])
 
 # Reset password and generate temporary password by search user ID
 def change_password(bearer_token, user_id):
@@ -280,7 +305,7 @@ def password_auth_methods(bearer_token, user_id):
 	json_resp =  error_info(resp)
 	return json_resp
 
-# Get microsoft authenticator methods id,ik
+# Get microsoft authenticator methods id
 def micro_auth_methods(bearer_token, user_id):
 	url = f"https://graph.microsoft.com/v1.0/users/{user_id}/authentication/microsoftAuthenticatorMethods"
 	resp = requests.get(url, headers=get_headers(bearer_token))
@@ -322,87 +347,6 @@ def delete_micro_auth_methods(bearer_token, user_id):
 	else:
 		print("[+] No found microsoft Authenticator Methods!")
 
-# Get user device recoveryKeys by recoveryKeys id
-def user_recoverykeys():
-	user_bearer = check_token()
-	user_id = search_user_id(user_bearer)
-	user_devices_id = devices_id(user_bearer, user_id)
-	if user_devices_id:
-		print("[+] Find user devices!")
-		for item in user_devices_id:
-			print("[+] Device name:", item["displayName"])
-		while True:
-			display_name = input("[+] Select user device name: ")
-			for item in user_devices_id:
-				if item["displayName"] == display_name:
-					user_device_id = item["deviceId"]
-					answer = "T"
-					break
-			else:
-				answer = "F"
-				print("[+] Input device name error")
-			if answer == "T":
-				break
-		recovery_keys = recoverykeys_id(user_bearer, user_device_id)
-		if recovery_keys["value"]:
-			for item in recovery_keys["value"]:
-				volume_type(item["volumeType"])
-				recoverykey_id = item["id"]
-				bitlocker_key = recovery_key(user_bearer, recoverykey_id)
-				print("[+] Bitlocker key: ", bitlocker_key)
-		else:
-			print("[+] The BitLocker recovery key for this device cannot be found.")
-	else:
-		print("[+] User devices is not found!")
-
-# Show volumeType Indicates the type of volume the BitLocker key is associated with
-def volume_type(type):
-	if type == "1":
-		print("[+] Volume type: Operating System Volume")
-	elif type == "2":
-		print("[+] Volume type: Fixed Data Volume")
-	elif type == "3":
-		print("[+] Volume type: Removable Data Volume")
-	else:
-		print("[+] Volume type: Unknown Future Value")
-
-# Get user information Protection bitlocker Keys by recoveryKeys id
-def recovery_key(bearer_token, bitlockerRecoveryKey_id):
-	url = f"https://graph.microsoft.com/v1.0/informationProtection/bitlocker/recoveryKeys/{bitlockerRecoveryKey_id}/?$select=key"
-	resp = requests.get(url, headers=get_headers(bearer_token))
-	json_resp =  error_info(resp)
-	return json_resp["key"]
-
-# Get user information Protection bitlocker recoveryKeys id by device id
-def recoverykeys_id(bearer_token, user_device_id):
-	url = f"https://graph.microsoft.com/v1.0/informationProtection/bitlocker/recoveryKeys?$filter=deviceId eq '{user_device_id}'"
-	resp = requests.get(url, headers=get_headers(bearer_token))
-	json_resp =  error_info(resp)
-	return json_resp
-
-# Get deviceId by search user email or name
-def devices_id(bearer_token, user_id):
-	url = f'https://graph.microsoft.com/v1.0/users/{user_id}/registeredDevices'
-	resp = requests.get(url, headers=get_headers(bearer_token))
-	json_resp =  error_info(resp)
-	return json_resp["value"]
-
-# Add a single member to a chat using user principal name
-def add_member(email):
-	user_bearer = check_token()
-	url = 'https://graph.microsoft.com/beta/chats/19:ba8f9147b7554294bab3a7ccef4c74ab@thread.v2/members'
-	user = f'https://graph.microsoft.com/beta/users/{email}'
-	data = {
-		"@odata.type": "#microsoft.graph.aadUserConversationMember",
-		"user@odata.bind": user,
-		"visibleHistoryStartDateTime": "2019-04-18T23:51:43.255Z",
-		"roles": ["owner"]
-		}
-	resp = requests.post(url, headers=get_headers(user_bearer), json=data)
-	if resp.status_code not in [200, 201]:
-		return False
-	return True
-
 # Show error messages
 def error_info(resp):
         json_resp = resp.json()
@@ -415,7 +359,7 @@ def error_info(resp):
 
 if __name__ == "__main__":
 #	auto_send_messages(startup_timestamp)
-	user_recoverykeys()
+	user_password_setting()
 #	chat_id = ""
 #	display_members_name(bearer,chat_id)
 #	search_user_id(bearer)
