@@ -2,7 +2,7 @@ import requests
 import time
 import json
 import os
-import Chatgpt
+import chatgpt
 import access_token
 
 from datetime import datetime
