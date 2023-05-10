@@ -356,10 +356,3 @@ def error_info(resp):
                 exit()
         else:
                 return json_resp
-
-if __name__ == "__main__":
-#	auto_send_messages(startup_timestamp)
-	user_password_setting()
-#	chat_id = ""
-#	display_members_name(bearer,chat_id)
-#	search_user_id(bearer)
