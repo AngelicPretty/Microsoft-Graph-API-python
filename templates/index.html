@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Join Chat Group</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <form method="POST" action="/submit">
+	<div class="centering">
+	<div class="card">
+    <span class="card__title">Microsoft Teams</span>
+    <p class="card__content">Enter your email address in the input box and click the button
+    </p>
+    <div class="input-group">
+        <input required="" type="text" name="text" autocomplete="off" class="input">
+        <label class="user-label">Your Email</label>
+        </div>
+        <button class="sign-up">Join Group</button>
+    
+</div>
+	</div>
+    </form>
+</body>
+</html>
