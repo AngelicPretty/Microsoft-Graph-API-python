@@ -52,7 +52,7 @@ async def main():
 		elif choice == 5:
 			await user_recoverykeys()
 		else:
-			print('Invalid choice!\n')
+			print('[-] Invalid choice!\n')
 
 async def user_password_setting():
 	os.system('cls' if os.name == 'nt' else 'clear')

@@ -30,7 +30,7 @@ def file_get_code():
 		with open('token/code.json') as f:
 			code = json.load(f)
 	else:
-		print("[+] File does not exist, please generate the code")
+		print("[-] File does not exist, please generate the code")
 		exit()
 
 	if "code" in code:
@@ -48,7 +48,7 @@ def file_get_refresh_code():
 		with open('token/access_token.json') as f:
 			access_token = json.load(f)
 	else:
-		print("[+] File does not exist, Start generate the access token")
+		print("[-] File does not exist, Start generate the access token")
 		get_access_token()
 		with open('token/access_token.json') as f:
 			access_token = json.load(f)
@@ -105,8 +105,8 @@ def refresh_token():
 def error_info(resp):
 	json_resp = resp.json()
 	if resp.status_code != 200 and "error" in json_resp:
-		print("[+] Error :", json_resp["error"])
-		print("[+] Error description :", json_resp["error_description"])
+		print("[-] Error :", json_resp["error"])
+		print("[-] Error description :", json_resp["error_description"])
 		exit()
 	else:
 		return json_resp

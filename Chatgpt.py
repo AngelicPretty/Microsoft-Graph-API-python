@@ -7,7 +7,7 @@ import openai
 os.environ["HTTP_PROXY"] = "127.0.0.1:1089"
 os.environ["HTTPS_PROXY"] = "127.0.0.1:8889"
 # 设置OpenAI API密钥和端点URL
-openai.api_key = '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'
+openai.api_key = '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'
 openai_endpoint = 'https://api.openai.com/v1/engines/text-davinci-003/completions'
 model_engine = "text-davinci-003"
 messages = []
@@ -15,15 +15,20 @@ openai.organization = os.environ.get("ORG_ID")
 
 # 定义用于向API发送请求并获取响应的函数
 def chat_gpt(prompt):
-
-	response = openai.Completion.create(
-		engine=model_engine,
-		prompt=prompt,
-		max_tokens=1024,
-		n=1,
-		stop=None,
-		temperature=0.7,
-	)
+	try:
+		response = openai.Completion.create(
+			engine=model_engine,
+			prompt=prompt,
+			max_tokens=1024,
+			n=1,
+			stop=None,
+			temperature=0.7,
+		)
+	except openai.error.RateLimitError as e:
+		print("[-] Warning: Your api key is expired!")
+		message = "您的Open API的密钥已经过期,请重新获取！"
+		return message
+	print("[+] Send Status: 200")
 	message = response.choices[0].text.strip()
 	return message
 
@@ -43,5 +48,4 @@ def send_chatgpt_message(message):
 		answer_name = "PaimonAI"
 		prompt = f"Q: {user_input}\n{answer_name}: "
 		response = chat_gpt(prompt)
-		print("[+] Send Status: 200")
 		return response

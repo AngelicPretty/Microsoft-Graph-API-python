@@ -29,7 +29,7 @@ def file_get_bearer():
 		with open('token/access_token.json') as f:
 			token = json.load(f)
 	else:
-		print("[+] File does not exist, please generate the token again")
+		print("[-] File does not exist, please generate the token again")
 		access_token.get_access_token()
 		with open('token/access_token.json') as f:
 			token = json.load(f)
@@ -43,7 +43,7 @@ def check_token():
 	resp = requests.get(url, headers=get_headers(user_bearer))
 	json_resp = resp.json()
 	if "error" in json_resp:
-		print("[+] Invalid Authentication Token, Token is expire")
+		print("[-] Invalid Authentication Token, Token is expire")
 		print("[+] Generating a new Microsoft Graph API token")
 		access_token.refresh_token()
 		user_bearer = file_get_bearer()
@@ -136,8 +136,8 @@ def auto_send_messages():
 		try:
 			chat_message = get_chat_message(user_bearer)
 		except KeyError:
-			print("[+] Connetion Microsoft Teams API failed")
-			print("[+] Warning token is Expired!")
+			print("[-] Connetion Microsoft Teams API failed")
+			print("[-] Warning token is Expired!")
 			user_bearer = check_token()
 			chat_message = get_chat_message(user_bearer)
 			print("[+] Start new listening progress")
@@ -233,7 +233,7 @@ def search_user_id(bearer_token):
 			print("[+] User ID: ", user_id)
 			break
 		else:
-			print("[+] User not found!")
+			print("[-] User not found!")
 	return user_id
 
 # Get user profiles by search user email and name
@@ -351,9 +351,9 @@ def user_recoverykeys():
 				bitlocker_key = recovery_key(user_bearer, recoverykey_id)
 				print("[+] Bitlocker key: ", bitlocker_key)
 		else:
-			print("[+] The BitLocker recovery key for this device cannot be found.")
+			print("[-] The BitLocker recovery key for this device cannot be found.")
 	else:
-		print("[+] User devices is not found!")
+		print("[-] User devices is not found!")
 
 # Show volumeType Indicates the type of volume the BitLocker key is associated with
 def volume_type(type):
@@ -407,8 +407,8 @@ def add_member(email):
 def error_info(resp):
         json_resp = resp.json()
         if resp.status_code != 200 and "error" in json_resp:
-                print("[+] Error code: ", json_resp["error"]["code"])
-                print("[+] Error description: ", json_resp["error"]["message"])
+                print("[-] Error code: ", json_resp["error"]["code"])
+                print("[-] Error description: ", json_resp["error"]["message"])
                 exit()
         else:
                 return json_resp
