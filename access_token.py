@@ -16,13 +16,6 @@ tenant_id = azure['tenant_id']
 client_secret = azure['client_secret']
 redirect_uri = url['redirect_uri']
 
-
-#client_id = "40af39aa-a901-4b50-b5e5-be6e8b2d45a8"
-#client_secret = "~rS8Q~IK3h3u-Eh3WH1v5Fncx6CtxP~jl_y2Hc8l"
-#tenant_id = "a17f8ab9-bc70-4901-a8ac-c4b71563637c"
-
-#redirect_uri = "https://188.188.13.121:5000"
-
 def file_get_code():
 # Check file exits
 	print("[+] Checking code...")
