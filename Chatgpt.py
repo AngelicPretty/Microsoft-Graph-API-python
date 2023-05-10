@@ -7,7 +7,7 @@ import openai
 os.environ["HTTP_PROXY"] = "127.0.0.1:1089"
 os.environ["HTTPS_PROXY"] = "127.0.0.1:8889"
 # 设置OpenAI API密钥和端点URL
-openai.api_key = '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'
+openai.api_key = '{api-key}'
 openai_endpoint = 'https://api.openai.com/v1/engines/text-davinci-003/completions'
 model_engine = "text-davinci-003"
 messages = []
