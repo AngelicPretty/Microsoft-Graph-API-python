@@ -135,7 +135,7 @@ class TeamsConversationBot(TeamsActivityHandler):
 			await turn_context.send_activity(reply_activity)
 
 	async def _wifi_card(self, turn_context: TurnContext):
-		reply_activity = MessageFactory.text("您好,WiFi密码为wuhan2013")
+		reply_activity = MessageFactory.text("您好,WiFi密码为******")
 		await turn_context.send_activity(reply_activity)
 		image_path = 'resources/WiFi_Card.png'
 		with open(image_path, "rb") as image_file:
