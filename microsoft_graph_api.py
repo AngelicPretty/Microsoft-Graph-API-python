@@ -1,9 +1,10 @@
-import requests
 import time
 import json
 import os
 import Chatgpt
 import access_token
+import re
+import requests
 
 from datetime import datetime
 from bs4 import BeautifulSoup
@@ -16,6 +17,7 @@ CONTENT_TYPE = "application/json"
 def get_headers(bearer_token):
     """This is the headers for the Microsoft Graph API calls"""
     return {
+        "Content-Type": "application/json",
         "Accept": CONTENT_TYPE,
         "Authorization": f"Bearer {bearer_token}",
         "ConsistencyLevel": "eventual",
@@ -261,6 +263,36 @@ def change_password(bearer_token, user_id):
 	json_resp = error_info(resp)
 	return json_resp
 
+# Modify user information in batches in resources dir
+def change_user_info(location):
+	bearer_token = check_token()
+	with open('./resources/user_names.txt', 'r') as file:
+		names = file.readlines()
+		for name in names:
+			name = name.rstrip("\n")
+			status, email = change_user_location(name ,location, bearer_token)
+			if status == True:
+				print(f"[+] Email: {email} [DONE]")
+			else:
+				print(f"[-] Email: {email} [ERROR]")
+
+
+# Change users profile
+def change_user_location(name, location, bearer_token):
+	name = re.sub(r'<[^<]+?>', '', name)
+	if " " in name:
+		mail = name.replace(" ", ".").lower() + "@mdpi.com"
+	if "@mdpi.com" not in mail:
+		mail = mail.lower() + "@mdpi.com"
+	url = f'https://graph.microsoft.com/v1.0/users/{mail}/'
+	payload = {"officeLocation": location}
+	resp = requests.patch(url, headers=get_headers(bearer_token), data=json.dumps(payload))
+	#json_resp = error_info(resp)
+	if resp.status_code == 204:
+		return True, mail
+	else:
+		return False, mail
+
 # User password settin by 3 method progress
 def user_password_setting():
 	user_bearer = check_token()
@@ -415,7 +447,8 @@ def error_info(resp):
 
 if __name__ == "__main__":
 #	auto_send_messages(startup_timestamp)
-	user_recoverykeys()
+#	user_recoverykeys()
 #	chat_id = ""
 #	display_members_name(bearer,chat_id)
 #	search_user_id(bearer)
+	change_user_info("Guanggu")
